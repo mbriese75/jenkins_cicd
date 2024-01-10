@@ -21,7 +21,7 @@ resource "aws_security_group" "jenkins_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["69.42.6.44/32" , "192.168.1.175/32" , "98.42.124.215/32]
+    cidr_blocks = ["69.42.6.44/32" , "192.168.1.175/32" , "98.42.124.215/32"]
   }
 }
 
