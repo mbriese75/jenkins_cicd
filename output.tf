@@ -7,3 +7,11 @@ output "instance_id" {
  value       = aws_instance.public_instance.id
  description = "Instance ID"
 }
+
+output "volume_id" {
+  value = aws_ebs_volume.st1.id
+}
+
+output "attachment_id" {
+  value = aws_volume_attachment.ebs.id
+}
