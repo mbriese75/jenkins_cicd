@@ -3,7 +3,14 @@ resource "aws_instance" "public_instance" {
   instance_type = var.instance_type
   vpc_security_group_ids = [aws_security_group.jenkins_sg.id]
   subnet_id = "${aws_subnet.public_subnets.id}"
-    
+  user_data = <<-EOF
+  #!/bin/bash
+  echo "*** Installing apache2"
+  sudo apt update -y
+  sudo apt install apache2 -y
+  echo "*** Completed Installing apache2"
+  EOF
+ 
   tags = {
     Name = var.name_tag,
   }
@@ -24,10 +31,9 @@ resource "aws_security_group" "jenkins_sg" {
 
   #Allow incoming TCP requests on port 22 from any IP
   ingress {
-    description = "Incoming SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["69.42.6.44/32" , "98.42.124.215/32", "192.168.1.175/32" ]
   }
 # Internet access to anywhere
@@ -56,7 +62,7 @@ resource "aws_volume_attachment" "ebs" {
 }
 
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = "10.10.0.0/16"
 
   tags = {
     Name = "${var.vpc_name}-VPC"
@@ -73,7 +79,7 @@ resource "aws_internet_gateway" "gw" {
 
 resource "aws_subnet" "public_subnets" {
      vpc_id = aws_vpc.main.id
-     cidr_block = "10.0.1.0/24"
+     cidr_block = "10.10.1.0/24"
       map_public_ip_on_launch = true
  
      tags = {
@@ -83,7 +89,7 @@ resource "aws_subnet" "public_subnets" {
 
 resource "aws_subnet" "private_subnets" {
   vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.2.0/24"
+  cidr_block        = "10.10.10.0/24"
 
   tags = {
     Name = "my_private_subnet"
@@ -114,3 +120,19 @@ resource "aws_route_table_association" "private_subnet_asso" {
   subnet_id = "${aws_subnet.private_subnets.id}"
   route_table_id = "${aws_route_table.subnets.id}"
 }
+
+
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "mybucket3445345656457676878687867867867"
+  acl    = "private"
+  force_destroy = true
+  lifecycle {
+    prevent_destroy = false
+  }
+  versioning {
+    enabled = true
+  }
+}
+
+
+
