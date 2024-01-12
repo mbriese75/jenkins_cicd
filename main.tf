@@ -9,6 +9,14 @@ resource "aws_instance" "public_instance" {
   sudo apt update -y
   sudo apt install apache2 -y
   echo "*** Completed Installing apache2"
+  wget https://raw.githubusercontent.com/ulissesss/jenkins_cicd/Dev/index.html
+  wget https://raw.githubusercontent.com/ulissesss/jenkins_cicd/Dev/headshot.jpg
+  wget https://raw.githubusercontent.com/ulissesss/jenkins_cicd/Dev/w3.css
+  sudo mv /var/www/html/index.html /var/www/html/index.html.bak
+  sudo cp index.html /var/www/html
+  sudo cp headshot.jpg /var/www/html
+  sudo cp w3.css /var/www/html
+  sudo systemctl apache2 restart
   EOF
  
   tags = {
@@ -29,12 +37,18 @@ resource "aws_security_group" "jenkins_sg" {
   description = "Open ports 22"
   vpc_id = "${aws_vpc.main.id}"
 
-  #Allow incoming TCP requests on port 22 from any IP
+  #Allow incoming TCP requests on port 22 and from my IP
   ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["69.42.6.44/32" , "98.42.124.215/32", "192.168.1.175/32" ]
+    from_port   = 22
+    to_port     = 22
+    protocol    = "TCP"
+    cidr_blocks = ["69.42.6.44/32" , "98.51.2.169/32", "71.198.26.65/32" ]
+  }
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "TCP"
+    cidr_blocks = ["69.42.6.44/32" , "98.51.2.169/32", "71.198.26.65/32" ]
   }
 # Internet access to anywhere
   egress {
@@ -123,7 +137,7 @@ resource "aws_route_table_association" "private_subnet_asso" {
 
 
 resource "aws_s3_bucket" "my_bucket" {
-  bucket = "mybucketmanfred3445345656457676878687867867867"
+  bucket = "mybucketval3445345656457676878687867867867"
   acl    = "private"
   force_destroy = true
   lifecycle {
@@ -132,6 +146,30 @@ resource "aws_s3_bucket" "my_bucket" {
   versioning {
     enabled = true
   }
+}
+resource "aws_s3_bucket_policy" "BucketPolicy" {
+  bucket = aws_s3_bucket.my_bucket.id
+  policy = jsonencode({
+
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+        aws_s3_bucket.my_bucket.arn,
+          "${aws_s3_bucket.my_bucket.arn}/*",
+      ],
+      "Effect": "Allow",
+      "Condition": {
+        "IpAddress": {
+          "aws:SourceIp": ["69.42.6.44/32", "98.51.2.169/32", "71.198.26.65/32" ]
+        
+        }
+      }
+    },
+  ]
+})
 }
 
 
