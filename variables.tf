@@ -40,3 +40,8 @@ variable "vpc_name" {
   default = "Project VPC"
 }
 
+variable "win_ami" {
+   type        = string
+   description = "Win2022"
+   default     = "ami-06938c7701be658b4"
+}
